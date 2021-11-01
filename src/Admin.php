@@ -57,6 +57,16 @@ class Clearvisio_Booker_Admin
     {
         $path = dirname(__FILE__) . "/booker{$this->config->getVersion()}.js";
         $url = get_site_url();
+        file_put_contents('/tmp/x', $this->config->get('extra_settings', '{}'));
+        $extraSettings = @json_decode($this->config->get('extra_settings', '{}'));
+        $extraSettingsString = '';
+        if ($extraSettings) {
+            foreach($extraSettings as $option => $value) {
+                $extraSettingsString .= ",\n    {$option}: " .
+                    (($value === null || $value === false || $value === true) ? $value : "\"$value\"")
+                ;
+            }
+        }
         file_put_contents($path, <<<EOS
 import ClearvisioAppointmentBooker from './vendor/index.js';
 
@@ -81,7 +91,7 @@ function startBooking(node) {
 
   new ClearvisioAppointmentBooker({
     storeCode: storeCode,
-    apiPath: '{$url}/wp-content/plugins/clearvisio-booker/api.php'
+    apiPath: '{$url}/wp-content/plugins/clearvisio-booker/api.php'{$extraSettingsString}
   });
 }
 
@@ -114,6 +124,22 @@ EOS
         $this->addTextSettingsField('api_url', 'API URL', 'Enter the API URL as displayed in clearvis.io store settings');
         $this->addTextSettingsField('api_key', 'API Key', 'Enter the API key of the technical user created in clearvis.io');
         $this->addTextSettingsField('store_code', 'Store Code', 'Enter store code if clearvis.io subscription has more than one store (optional)');
+        $this->addTextareaSettingsField('extra_settings', 'Extra JSON settings', 'See https://github.com/clearvis-io/clearvisio-appointment-booker for options');
+    }
+
+    private function addTextAreaSettingsField($name, $title, $description)
+    {
+        add_settings_field(
+            'clearvisio_booker_field_' . $name,
+            __($title, 'clearvisio_booker' ),
+            function() use ($name, $description){
+                $options = get_option('clearvisio_booker_options');
+                echo '<textarea id="clearvisio_booker_field_' . $name .'" name="clearvisio_booker_options[' . $name . ']" rows="6" cols="80">' . esc_attr($options[$name]) . '</textarea>' .
+                    '<p class="description">' . esc_html__($description, 'clearvisio_booker') . '</p>';
+            },
+            'clearvisio_booker_options',
+            'api_settings'
+        );
     }
 
     private function addTextSettingsField($name, $title, $description)
