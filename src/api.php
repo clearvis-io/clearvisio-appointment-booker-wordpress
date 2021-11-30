@@ -23,7 +23,7 @@ $result = @file_get_contents(
     ])
 );
 
-foreach ($http_response_header ?? [] as $header) {
+foreach ((isset($http_response_header) && is_array($http_response_header)) ? $http_response_header : [] as $header) {
     header($header);
 }
 
