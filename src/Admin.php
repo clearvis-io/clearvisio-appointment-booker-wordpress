@@ -58,14 +58,7 @@ class Clearvisio_Booker_Admin
         $path = dirname(__FILE__) . "/booker{$this->config->getVersion()}.js";
         $url = get_site_url();
         $extraSettings = @json_decode($this->config->get('extra_settings', '{}'));
-        $extraSettingsString = '';
-        if ($extraSettings) {
-            foreach($extraSettings as $option => $value) {
-                $extraSettingsString .= ",\n    {$option}: " .
-                    (($value === null || $value === false || $value === true) ? $value : "\"$value\"")
-                ;
-            }
-        }
+        $extraSettingsString = ($extraSettings === null) ? "{}" : $this->config->get('extra_settings', '{}');
         file_put_contents($path, <<<EOS
 import ClearvisioAppointmentBooker from './vendor/index.js';
 
@@ -88,10 +81,10 @@ function startBooking(node) {
       return;
   }
 
-  new ClearvisioAppointmentBooker({
+  new ClearvisioAppointmentBooker(Object.assign({
     storeCode: storeCode,
-    apiPath: '{$url}/wp-content/plugins/clearvisio-booker/api.php'{$extraSettingsString}
-  });
+    apiPath: '{$url}/wp-content/plugins/clearvisio-booker/api.php'
+  }, {$extraSettingsString}));
 }
 
 function getElementOrSomeParentWithClass(element, classname) {
