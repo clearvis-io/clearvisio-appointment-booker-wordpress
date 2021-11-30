@@ -57,7 +57,6 @@ class Clearvisio_Booker_Admin
     {
         $path = dirname(__FILE__) . "/booker{$this->config->getVersion()}.js";
         $url = get_site_url();
-        file_put_contents('/tmp/x', $this->config->get('extra_settings', '{}'));
         $extraSettings = @json_decode($this->config->get('extra_settings', '{}'));
         $extraSettingsString = '';
         if ($extraSettings) {
